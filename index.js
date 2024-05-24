@@ -1,7 +1,7 @@
 const canvas = document.querySelector('canvas')
 const c = canvas.getContext('2d')
-canvas.width = window.innerWidth
-canvas.height = window.innerHeight - 1
+canvas.width = 1536 / 1.2
+canvas.height = 729 / 1.2
 
 
 const FOV = .5 * Math.PI
@@ -92,6 +92,8 @@ function changeMapSize(size)
     }
     tileSize = (canvas.width * .25) / map.length
     ts = (canvas.width / 2.5) / map.length // editor tile size
+    props.cones = []
+    props.tires = []
 
 }
 
@@ -153,14 +155,6 @@ class Player
             }
             
         }
-        else if (keys.s == true)
-        {
-            this.speed -= this.acceleration * dt / 2
-            if (this.speed < -this.topSpeed / 2)
-            {
-                this.speed = -this.topSpeed / 2
-            }
-        }
         else if (keys.w != true)//neither forward nor back are pressed, lose speed gradually
         {
             if (this.speed > 0)
@@ -177,13 +171,13 @@ class Player
                 this.speed = 0
             }
         }
-
         if (keys.a == true)
         {
+
             this.direction -= .1 * dt * this.turnSpeed
             if (this.speed > (1 / floorTypes[floor].friction) / 15 * floorTypes[floor].friction * floorTypes[floor].friction)
             {
-                this.speed -= (1 / floorTypes[floor].friction) / 15 * floorTypes[floor].friction * floorTypes[floor].friction
+                this.speed -= (1 / floorTypes[floor].friction) / 15 * floorTypes[floor].friction * floorTypes[floor].friction * 10 / map.length
             }
             if (this.direction < 0)
             {
@@ -192,30 +186,30 @@ class Player
         }
         if (keys.d == true)
         {
+
             this.direction += .1 * dt * this.turnSpeed
             if (this.speed > (1 / floorTypes[floor].friction) / 15 * floorTypes[floor].friction * floorTypes[floor].friction)
             {
-                this.speed -= (1 / floorTypes[floor].friction) / 15 * floorTypes[floor].friction * floorTypes[floor].friction
+                this.speed -= (1 / floorTypes[floor].friction) / 15 * floorTypes[floor].friction * floorTypes[floor].friction * 10 / map.length
             }
             if (this.direction > 6.28)
             {
                 this.direction = 0
             }
         }
-        if (keys.shift)
-        {
-            this.direction += .001 * dt * this.turnSpeed
-            if (this.direction > 6.28)
-            {
-                this.direction = 0
-            }
-        }
+        
 
         //player movement
         for (var i = 0; i < this.speed; i++)
         {
             this.x += -Math.sin(this.direction) * dt * 10
+
+            if (keys.shift && keys.a)
+            {
+                this.x -= Math.cos(this.direction) * this.speed * dt
+            }
             
+                
 
             let testX = Math.floor(this.x / (tileSize))
             let testY = Math.floor(this.y / (tileSize))
@@ -226,6 +220,10 @@ class Player
                 while(map[testY][testX] > 0)
                 {
                     this.x -= -Math.sin(this.direction) * dt
+                    if (keys.shift && keys.a)
+                    {
+                        this.x -= Math.cos(this.direction) * this.speed * dt
+                    }
                     testX = Math.floor(this.x / (tileSize))
                 }
                 this.speed -= .1
@@ -233,6 +231,11 @@ class Player
             }
 
             this.y += Math.cos(this.direction) * dt * 10
+
+            if (keys.shift && keys.a)
+            {
+                this.y -= Math.sin(this.direction) * this.speed * dt
+            }
 
             testX = Math.floor(this.x / (tileSize))
             testY = Math.floor(this.y / (tileSize))
@@ -243,6 +246,10 @@ class Player
                 while(map[testY][testX] > 0)
                 {
                     this.y -= Math.cos(this.direction) * dt
+                    if (keys.shift && keys.a)
+                    {
+                        this.y -= Math.sin(this.direction) * this.speed * dt
+                    }
                     testY = Math.floor(this.y / (tileSize))
                 }
 
@@ -444,7 +451,7 @@ class Prop
             {
                 if (checkpoints == 2)
                 {
-                    let hOffset = 2
+                    let hOffset = .05 * tileSize
                     height *= hOffset
                     let width = height
                     //fix the showing underneath walls issue
@@ -767,6 +774,7 @@ function editMap()
             }
         }
         map[Math.floor((mousepos.y - (canvas.height / 2 - (ts * map.length) / 2)) / ts)][Math.floor((mousepos.x - canvas.width / 25) / ts)] = activeEditTile
+        var i = 0
 
     }
 }
@@ -1620,6 +1628,7 @@ function animate()
             button.draw()
         })
     }
+    console.log(keys.shift)
     
     pt = ct
 }
@@ -1646,11 +1655,6 @@ document.onkeydown = function(e)
     if (e.key == "Shift")
     {
         keys.shift = true
-        changeMapSize(10)
-    }
-    if (e.key == "e")
-    {
-        artificiallag()
     }
     if (e.key == "r") //resets the race
     {
@@ -1702,8 +1706,8 @@ document.onkeyup = function(e)
 
 document.onmousemove = function(e)
 {
-    mousepos.x = e.pageX
-    mousepos.y = e.pageY
+    mousepos.x = e.offsetX
+    mousepos.y = e.offsetY
 }
 document.onmousedown = function(e)
 {
