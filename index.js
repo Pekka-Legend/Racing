@@ -1,3 +1,8 @@
+//TODO add different drifting speeds and test on different size maps
+//TODO add a garage with different cars
+//TODO add a library of all user levels
+//TODO make levels
+
 const canvas = document.querySelector('canvas')
 const c = canvas.getContext('2d')
 canvas.width = 1536 / 1.2
@@ -120,7 +125,7 @@ class Player
         this.speed = 0
         this.topSpeed = 480 / tileSize
         this.acceleration = 300 / tileSize
-        this.turnSpeed = 25
+        this.turnSpeed = 20
         this.direction = Math.PI * 1.5
         this.radius = tileSize / 10
         this.previousX = 0
@@ -204,11 +209,14 @@ class Player
         {
             this.x += -Math.sin(this.direction) * dt * 10
 
-            if (keys.shift && keys.a)
+            if (keys.shift && keys.a && keys.d == false)
             {
                 this.x -= Math.cos(this.direction) * this.speed * dt
             }
-            
+            if (keys.shift && keys.d && keys.a == false)
+            {
+                this.x += Math.cos(this.direction) * this.speed * dt
+            }
                 
 
             let testX = Math.floor(this.x / (tileSize))
@@ -221,6 +229,10 @@ class Player
                 {
                     this.x -= -Math.sin(this.direction) * dt
                     if (keys.shift && keys.a)
+                    {
+                        this.x += Math.cos(this.direction) * this.speed * dt / 10
+                    }
+                    if (keys.shift && keys.d)
                     {
                         this.x -= Math.cos(this.direction) * this.speed * dt
                     }
@@ -236,6 +248,10 @@ class Player
             {
                 this.y -= Math.sin(this.direction) * this.speed * dt
             }
+            if (keys.shift && keys.d)
+            {
+                this.y += Math.sin(this.direction) * this.speed * dt
+            }
 
             testX = Math.floor(this.x / (tileSize))
             testY = Math.floor(this.y / (tileSize))
@@ -247,6 +263,10 @@ class Player
                 {
                     this.y -= Math.cos(this.direction) * dt
                     if (keys.shift && keys.a)
+                    {
+                        this.y += Math.sin(this.direction) * this.speed * dt / 10
+                    }
+                    if (keys.shift && keys.d)
                     {
                         this.y -= Math.sin(this.direction) * this.speed * dt
                     }
@@ -1628,7 +1648,6 @@ function animate()
             button.draw()
         })
     }
-    console.log(keys.shift)
     
     pt = ct
 }
@@ -1647,15 +1666,21 @@ document.onkeydown = function(e)
     if (e.key == 'a' || e.key == 'ArrowLeft')
     {
         keys.a = true
+        keys.d = false
     }
     if (e.key == 'd' || e.key == 'ArrowRight')
     {
         keys.d = true
+        keys.a = false
     }
-    if (e.key == "Shift")
+    if (keys.shift == false)
     {
-        keys.shift = true
+        if (e.key == "Shift")
+        {
+            keys.shift = true
+        }
     }
+    
     if (e.key == "r") //resets the race
     {
         if (menu == 0)
